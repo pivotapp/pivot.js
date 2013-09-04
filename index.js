@@ -16,15 +16,14 @@ var config = {};
  * @param {String} event
  */
 
-exports = module.exports = function(event, value) {
+exports = module.exports = function(event) {
   var data = {
+    a: config.app
     e: event,
-    i: config.id
+    u: config.user
   };
 
-  if (value) data.v = value;
-
-  track(config.track, data, config);
+  track('//' + config.track, data, config);
 };
 
 /**
@@ -41,14 +40,16 @@ exports.set = function(key, value) {
 /**
  * Initialize
  *
- * @param {String} id
+ * @param {String} app
+ * @param {String} user
  * @param {Object} opts
  */
 
-exports.init = function(id, opts) {
-  config.id = id;
-  config.host = opts.host || '';
-  config.track = opts.track || config.host + '/event';
+exports.init = function(app, user, opts) {
+  config.app = app;
+  config.user = user;
+  config.host = opts.host || 'api.pivotapp.io';
+  config.track = opts.track || config.host + '/track';
   config.debug = opts.debug || false;
   config.test = opts.test || false;
 };
