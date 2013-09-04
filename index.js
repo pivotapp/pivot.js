@@ -17,13 +17,15 @@ var config = {};
  */
 
 exports = module.exports = function(event) {
+  if (!config.app || !config.user) throw new Error('pivot not initialized. use `pivot.init(\'app_id\', \'user_id\')`');
+
   var data = {
-    a: config.app
+    a: config.app,
     e: event,
     u: config.user
   };
 
-  track('//' + config.track, data, config);
+  track(config.track, data, config);
 };
 
 /**
@@ -46,9 +48,11 @@ exports.set = function(key, value) {
  */
 
 exports.init = function(app, user, opts) {
+  opts = opts || {};
+
   config.app = app;
   config.user = user;
-  config.host = opts.host || 'api.pivotapp.io';
+  config.host = opts.host || 'https://api.pivotapp.io';
   config.track = opts.track || config.host + '/track';
   config.debug = opts.debug || false;
   config.test = opts.test || false;
