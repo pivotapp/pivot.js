@@ -5,13 +5,11 @@
   "version": "0.1.0",
   "keywords": [],
   "dependencies": {
-    "yields/xhr": "*",
     "component/querystring": "*"
   },
   "development": {},
   "license": "MIT",
   "scripts": [
-    "index.js",
-    "track.js"
+    "index.js"
   ]
 }

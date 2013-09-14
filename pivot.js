@@ -27,10 +27,14 @@ function require(path, parent, orig) {
   // perform real require()
   // by invoking the module's
   // registered function
-  if (!module.exports) {
-    module.exports = {};
-    module.client = module.component = true;
-    module.call(this, module.exports, require.relative(resolved), module);
+  if (!module._resolving && !module.exports) {
+    var mod = {};
+    mod.exports = {};
+    mod.client = mod.component = true;
+    module._resolving = true;
+    module.call(this, mod.exports, require.relative(resolved), mod);
+    delete module._resolving;
+    module.exports = mod.exports;
   }
 
   return module.exports;
@@ -196,26 +200,6 @@ require.relative = function(parent) {
 
   return localRequire;
 };
-require.register("yields-xhr/index.js", function(exports, require, module){
-
-/**
- * XMLHttpRequest / ActiveXObject
- *
- * example:
- *
- *        var req = xhr();
- *
- * @return {Object}
- */
-
-module.exports = function(){
-  if (window.XMLHttpRequest) return new XMLHttpRequest();
-  try{ return new ActiveXObject('msxml2.xmlhttp.6.0'); } catch(e){}
-  try{ return new ActiveXObject('msxml2.xmlhttp.3.0'); } catch(e){}
-  try{ return new ActiveXObject('msxml2.xmlhttp'); } catch(e){}
-};
-
-});
 require.register("component-trim/index.js", function(exports, require, module){
 
 exports = module.exports = trim;
@@ -290,7 +274,7 @@ require.register("pivot/index.js", function(exports, require, module){
  * Module dependencies
  */
 
-var track = require('./track');
+var qs = require('querystring');
 
 /**
  * keep a config
@@ -346,48 +330,13 @@ exports.init = function(app, user, opts) {
   config.test = opts.test || false;
 };
 
-});
-require.register("pivot/track.js", function(exports, require, module){
-/**
- * Module dependencies
- */
 
-var xhr = require('xhr');
-var qs = require('querystring');
-
-module.exports = function(url, data, opts) {
+function track(url, data, opts) {
   if (opts.test) data['t'] = 1;
-
-  var queryUrl = url + '?' + qs.stringify(data);
-
-  if (opts.img) {
-    var img = document.createElement('img');
-    img.src = queryUrl;
-    return document.body.appendChild(img);
-  }
-
-  if (xhr && opts.xhr) {
-    var req = new XMLHttpRequest();
-    req.open('GET', queryUrl, true);
-    return req.send(null);
-  }
-
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-  script.defer = true;
-  script.src = queryUrl;
-
-  var s = document.getElementsByTagName('script')[0];
-  s.parentNode.insertBefore(script, s);
+  (new Image).src = url + '?' + qs.stringify(data);
 };
 
 });
-
-
-require.alias("yields-xhr/index.js", "pivot/deps/xhr/index.js");
-require.alias("yields-xhr/index.js", "xhr/index.js");
-
 require.alias("component-querystring/index.js", "pivot/deps/querystring/index.js");
 require.alias("component-querystring/index.js", "querystring/index.js");
 require.alias("component-trim/index.js", "component-querystring/deps/trim/index.js");

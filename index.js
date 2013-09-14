@@ -2,7 +2,7 @@
  * Module dependencies
  */
 
-var track = require('./track');
+var qs = require('querystring');
 
 /**
  * keep a config
@@ -56,4 +56,10 @@ exports.init = function(app, user, opts) {
   config.track = opts.track || config.host + '/track';
   config.debug = opts.debug || false;
   config.test = opts.test || false;
+};
+
+
+function track(url, data, opts) {
+  if (opts.test) data['t'] = 1;
+  (new Image).src = url + '?' + qs.stringify(data);
 };
