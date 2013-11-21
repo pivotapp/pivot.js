@@ -269,78 +269,509 @@ exports.stringify = function(obj){
 };
 
 });
-require.register("pivot/index.js", function(exports, require, module){
+require.register("kaerus-component-urlparser/index.js", function(exports, require, module){
+/**
+ * Provides with an Url parser that deconstructs an url into a managable object and back to a string.
+ *
+ *  ### Examples:
+ *  
+ *      url = require('urlparser');
+ *      
+ *      var u = url.parse('http://user:pass@kaerus.com/login?x=42');
+ *      
+ *      u.host.hostname = 'database.kaerus.com'
+ *      u.host.password = 'secret';
+ *      u.host.port = 8529;
+ *      u.query.parts.push('a=13');
+ *      u.toString(); // 'http://user:secret@database.kaerus.com:8529/login?x=42&a=13'
+ *      
+ * @module  urlparser
+ * @name urlparser
+ * @main  urlparser
+ */
+
+var URL = /^(?:(?:([A-Za-z]+):?\/{2})?(?:(\w+)?:?([^\x00-\x1F^\x7F^:]*)@)?([\w\-\.]+)?(?::(\d+))?)\/?(([^\x00-\x1F^\x7F^\#^\?^:]+)?(?::([^\x00-\x1F^\x7F^\#^\?]+))?(?:#([^\x00-\x1F^\?]+))?)(?:\?(.*))?$/;
+
+function urlString(o){
+    var str = "";
+
+    o = o ? o : this;
+  
+    str+= hostString(o);
+    str+= pathString(o);
+    str+= queryString(o);
+
+    return str;
+}
+
+module.exports.url = urlString;
+
+function hostString(o){
+    var str = "";
+  
+    o = o ? o.host : this.host;
+
+    if(o) {
+        if(o.protocol) str+= o.protocol + '://';
+        if(o.username) { 
+            str+= o.username + (o.password ? ':' + o.password : '') + '@';
+        }
+        if(o.hostname) str+= o.hostname; 
+        if(o.port) str+= ':' + o.port;
+    }
+
+    return str;    
+}
+
+module.exports.host = hostString;
+
+function pathString(o){
+    var str = "";
+  
+    o = o ? o.path : this.path;
+
+    if(o) {
+        if(o.base) str+= '/' + o.base;
+        if(o.name) str+= ':' + o.name;
+        if(o.hash) str+= '#' + o.hash;
+    }
+
+    return str;     
+}
+
+module.exports.path = pathString;
+
+function queryString(o){
+    var str = "";
+    
+    o = o ? o.query : this.query;
+
+    if(o) {
+        str = "?";
+        if(o.parts)
+            str+= o.parts.join('&');
+    }
+
+    return str;    
+}
+
+module.exports.query = queryString;
+/**
+ * @class  UrlParser
+ * @constructor
+ * @static
+ * @param url {String}
+ * @return {Object}
+ */
+function urlParser(parse) {
+
+    var param, 
+        ret = {};
+
+    /**
+     * @method  toString 
+     * @return {String}
+     */
+    Object.defineProperty(ret,'toString',{
+        enumerable: false,
+        value: urlString
+    });   
+
+    
+    if(typeof parse === 'string') {
+        var q, p, u; 
+
+        u = URL.exec(parse);
+
+        /**
+         * Host attributes
+         *
+         *      host: {
+         *          protocol: {String}
+         *          username: {String}
+         *          password: {String}
+         *          hostname: {String}
+         *          port: {String}
+         *      }
+         *      
+         * @attribute host
+         * @type {Object} 
+         */
+
+        if(u[1] || u[4]) {
+            ret.host = {};
+
+            if(u[1]) ret.host.protocol = u[1];
+            if(u[2]) ret.host.username = u[2];
+            if(u[3]) ret.host.password = u[3];
+            if(u[4]) ret.host.hostname = u[4];
+            if(u[5]) ret.host.port = u[5]; 
+        }
+        /**
+         * Path information
+         *
+         *      path: {
+         *          base: {String} // base path without hash
+         *          name: {String} // file or directory name
+         *          hash: {String} // the #hash part in path
+         *      }
+         *      
+         * @attribute path
+         * @type {Object} 
+         */
+
+        if(u[6]) {
+            ret.path = {};
+
+            if(u[7]) ret.path.base = u[7];
+            if(u[8]) ret.path.name = u[8];
+            if(u[9]) ret.path.hash = u[9];
+        }
+        /**
+         * Query parameters
+         *
+         *      query: {
+         *          parts: {Array}   // query segments ['a=3','x=2'] 
+         *          params: {Object} // query parameters {a:3,x:2}
+         *      }
+         *      
+         * @attribute query
+         * @type {Object} 
+         */
+        if(u[10]) {
+            ret.query = {};
+            ret.query.parts = u[10].split('&');
+            if(ret.query.parts.length) {
+
+                ret.query.params = {};
+                ret.query.parts.forEach(function(part){
+                    param = part.split('='); 
+                    ret.query.params[param[0]] = param[1];   
+                });
+            }
+        }
+    }
+
+    return ret; 
+}
+
+module.exports.parse = urlParser;
+});
+require.register("component-cookie/index.js", function(exports, require, module){
+/**
+ * Encode.
+ */
+
+var encode = encodeURIComponent;
+
+/**
+ * Decode.
+ */
+
+var decode = decodeURIComponent;
+
+/**
+ * Set or get cookie `name` with `value` and `options` object.
+ *
+ * @param {String} name
+ * @param {String} value
+ * @param {Object} options
+ * @return {Mixed}
+ * @api public
+ */
+
+module.exports = function(name, value, options){
+  switch (arguments.length) {
+    case 3:
+    case 2:
+      return set(name, value, options);
+    case 1:
+      return get(name);
+    default:
+      return all();
+  }
+};
+
+/**
+ * Set cookie `name` to `value`.
+ *
+ * @param {String} name
+ * @param {String} value
+ * @param {Object} options
+ * @api private
+ */
+
+function set(name, value, options) {
+  options = options || {};
+  var str = encode(name) + '=' + encode(value);
+
+  if (null == value) options.maxage = -1;
+
+  if (options.maxage) {
+    options.expires = new Date(+new Date + options.maxage);
+  }
+
+  if (options.path) str += '; path=' + options.path;
+  if (options.domain) str += '; domain=' + options.domain;
+  if (options.expires) str += '; expires=' + options.expires.toUTCString();
+  if (options.secure) str += '; secure';
+
+  document.cookie = str;
+}
+
+/**
+ * Return all cookies.
+ *
+ * @return {Object}
+ * @api private
+ */
+
+function all() {
+  return parse(document.cookie);
+}
+
+/**
+ * Get cookie `name`.
+ *
+ * @param {String} name
+ * @return {String}
+ * @api private
+ */
+
+function get(name) {
+  return all()[name];
+}
+
+/**
+ * Parse cookie `str`.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function parse(str) {
+  var obj = {};
+  var pairs = str.split(/ *; */);
+  var pair;
+  if ('' == pairs[0]) return obj;
+  for (var i = 0; i < pairs.length; ++i) {
+    pair = pairs[i].split('=');
+    obj[decode(pair[0])] = decode(pair[1]);
+  }
+  return obj;
+}
+
+});
+require.register("pivot/browser.js", function(exports, require, module){
 /**
  * Module dependencies
  */
 
+var parser = require('urlparser').parse;
 var qs = require('querystring');
+var cookie = require('cookie');
+var util = require('./util');
 
 /**
- * keep a config
+ * Record an event or assign the current user a set of bandit/arms
+ *
+ * @param {String|Function} event
+ * @param {Object} conf
  */
 
-var config = {};
+exports = module.exports = util.createClient(null, {
+  parse: parse,
+  get: get,
+  token: token
+});
+
 
 /**
- * Track an event
+ * Create an independent client
  *
- * @param {String} event
- */
-
-exports = module.exports = function(event) {
-  if (!config.app || !config.user) throw new Error('pivot not initialized. use `pivot.init(\'app_id\', \'user_id\')`');
-
-  var data = {
-    a: config.app,
-    e: event,
-    u: config.user
-  };
-
-  track(config.track, data, config);
-};
-
-/**
- * Set a config option
- *
- * @param {String} key
- * @param {Any} value
- */
-
-exports.set = function(key, value) {
-  config[key] = value;
-};
-
-/**
- * Initialize
- *
- * @param {String} app
- * @param {String} user
+ * @param {String} url
  * @param {Object} opts
  */
 
-exports.init = function(app, user, opts) {
+exports.client = function(url, opts) {
   opts = opts || {};
-
-  config.app = app;
-  config.user = user;
-  config.host = opts.host || 'https://api.pivotapp.io';
-  config.track = opts.track || config.host + '/track';
-  config.debug = opts.debug || false;
-  config.test = opts.test || false;
+  opts.get = opts.get || get;
+  opts.token = opts.token || token(opts.cookie);
+  opts.parse = opts.parse || parse;
+  return util.createClient(url, opts);
 };
 
+/**
+ * Perform a GET at url with data
+ *
+ * @param {String} url
+ * @param {Object} data
+ * @param {Function?} fn
+ */
 
-function track(url, data, opts) {
-  if (opts.test) data['t'] = 1;
-  (new Image).src = url + '?' + qs.stringify(data);
-};
+function get(url, data, fn) {
+  url = url + '?' + qs.stringify(data);
+  if (!fn) return (new Image).src = url;
+
+  var req = cors(url);
+
+  if (!req) return fn(new Error('CORS not supported'));
+
+  req.onload = function() {
+    try {
+      fn(null, JSON.parse(xhr.responseText));
+    } catch (err) {
+      fn(err);
+    }
+  };
+  req.onerror = function() {
+    fn(new Error('Request could not be completed'));
+  };
+  req.ontimeout = function() {
+    fn();
+  };
+
+  req.send();
+}
+
+/**
+ * Remember a token for a user
+ *
+ * @param {String} name
+ * @return {Function}
+ */
+
+function token(name) {
+  name = name || 'pivot';
+  return function(token, fn) {
+    if (typeof token === 'function') return token(null, cookie(name));
+    cookie(name, token);
+    fn();
+  };
+}
+
+/**
+ * Parse a pivot url
+ */
+
+function parse(url) {
+  var config = {};
+  url = parser(url);
+  config.app = url.host.username;
+  url.host.username = null;
+  config.url = url.toString();
+  return config;
+}
+
+
+function cors(url) {
+  var xhr = new XMLHttpRequest();
+  if ('withCredentials' in xhr) {
+    xhr.open('GET', url, true);
+    return xhr;
+  }
+  // IE
+  if (typeof XDomainRequest !== 'undefined') {
+    xhr = new XDomainRequest();
+    xhr.open('GET', url);
+    return xhr;
+  }
+}
 
 });
+require.register("pivot/util.js", function(exports, require, module){
+
+/**
+ * Create an independent client
+ *
+ * @param {String} url
+ * @param {Object} opts
+ */
+
+exports.createClient = function(url, opts) {
+  var config = url ? defaults(url, opts) : {};
+
+  function client(event) { return pivot(event, config); }
+
+  client.set = function(key, value) {
+    config[key] = value;
+  };
+
+  client.init = function(url, userOpts) {
+    userOpts = userOpts || opts || {};
+    userOpts.get = userOpts.get || opts.get;
+    userOpts.token = userOpts.token || opts.token;
+    config = defaults(url, userOpts || opts);
+  };
+
+  return client;
+};
+
+/**
+ * Set defaults for the given url/opts
+ *
+ * @param {String} url
+ * @param {Object} opts
+ * @return {Object}
+ */
+
+function defaults(url, opts) {
+  opts = opts || {};
+  var config = opts.parse(url);
+
+  config.events = config.url + '/events';
+  config.assignments = config.url + '/assignments';
+  config.debug = opts.debug || false;
+  config.test = opts.test || false;
+  config.get = opts.get;
+  config.token = opts.token;
+  return config;
+}
+
+/**
+ * Interact with the pivot clients api
+ *
+ * @param {String|Function} event
+ * @param {Object} config
+ */
+
+function pivot(event, config) {
+  if (!config.app) return console.error('pivot not initialized. use `pivot.init(\'https://myappid:@clients.pivotapp.io\')`');
+
+  var data = {
+    a: config.app,
+    e: event
+  };
+  if (config.test) data.t = 1;
+
+  if (typeof event === 'string') return config.get(config.events, data);
+
+  delete data.e;
+  config.get(config.assignments, data, function(err, res) {
+    if (err) return event(err);
+    config.token(res.token, function(err) {
+      if (err) return event(err);
+      event(null, res.assignments);
+    });
+  });
+}
+
+});
+
+
+
 require.alias("component-querystring/index.js", "pivot/deps/querystring/index.js");
 require.alias("component-querystring/index.js", "querystring/index.js");
 require.alias("component-trim/index.js", "component-querystring/deps/trim/index.js");
-if (typeof exports == "object") {
+
+require.alias("kaerus-component-urlparser/index.js", "pivot/deps/urlparser/index.js");
+require.alias("kaerus-component-urlparser/index.js", "urlparser/index.js");
+
+require.alias("component-cookie/index.js", "pivot/deps/cookie/index.js");
+require.alias("component-cookie/index.js", "cookie/index.js");
+
+require.alias("pivot/browser.js", "pivot/index.js");if (typeof exports == "object") {
   module.exports = require("pivot");
 } else if (typeof define == "function" && define.amd) {
   define(function(){ return require("pivot"); });

@@ -2,7 +2,7 @@ release: build build/build.min.js
 	cp build/build.js pivot.js
 	cp build/build.min.js pivot.min.js
 
-build: components index.js
+build: components util.js browser.js
 	@./node_modules/.bin/component build --standalone pivot
 
 build/build.min.js: build/build.js

@@ -7,11 +7,13 @@
   "dependencies": {
     "component/querystring": "*",
     "kaerus-component/urlparser": "*",
-    "LearnBoost/jsonp": "*"
+    "component/cookie": "*"
   },
   "development": {},
   "license": "MIT",
+  "main": "browser.js",
   "scripts": [
-    "index.js"
+    "browser.js",
+    "util.js"
   ]
 }
