@@ -17,7 +17,7 @@ var util = require('./util');
 exports = module.exports = util.createClient(null, {
   parse: parse,
   get: get,
-  token: token
+  token: token()
 });
 
 
