@@ -15,3 +15,5 @@ npm-debug.log
 components
 node_modules
 build
+manifest*
+.env

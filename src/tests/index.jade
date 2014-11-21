@@ -1,0 +1,18 @@
+extends ../../node_modules/poe-ui-kit/views/layout.jade
+
+block content
+  h1 Welcome!
+
+block scripts
+  script.
+    (function(t,n,e,o,r,s){var i="pivot",a="event",c="assign",
+    p=n.createElement(e),u=document.getElementsByTagName(e)[0],d=t[i]=t[i]||
+    {p:[],s:[],a:r,o:s};d[a]=d[a]||function(t){d.p.push(t)},d[c]=d[c]||function
+    (){d.s.push(arguments)},p.async=1,p.src=o,u.parentNode.insertBefore(p,u)
+    })(window,document,"script","//localhost:3000/pivot.js","my-app-id",{base: '//localhost:3000'});
+
+    pivot.event('testing');
+
+    pivot.assign('user123', function(err, assignments) {
+      console.log('ASSIGNMENTS', assignments);
+    });

@@ -1,0 +1,31 @@
+{
+  "name": "pivot.js",
+  "version": "0.1.0",
+  "description": "pivot client library",
+  "main": "app.js",
+  "scripts": {
+    "start": "./node_modules/.bin/startup start",
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pivotapp/pivot.js.git"
+  },
+  "author": "Cameron Bytheway <bytheway.cameron@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pivotapp/pivot.js/issues"
+  },
+  "homepage": "https://github.com/pivotapp/pivot.js",
+  "dependencies": {
+    "directiv-core-builder": "^0.1.0",
+    "envs": "^0.1.6",
+    "jade": "^1.7.0",
+    "poe-ui-kit": "git+https://github.com/poegroup/poe-ui-kit.git#webpack",
+    "startup": "^1.0.0",
+    "webpack": "^1.4.13"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^1.6.5"
+  }
+}
